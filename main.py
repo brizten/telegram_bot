@@ -5,6 +5,7 @@ import sys
 import keyring
 
 from asteroid import detector
+from weather import get_weather
 
 from aiocron import crontab
 from aiogram import Bot, Dispatcher, html
@@ -14,9 +15,9 @@ from aiogram.filters import CommandStart
 from aiogram.types import Message
 
 TOKEN = keyring.get_password('telega', 'api')
-CHAT_ID = keyring.get_password('telega', 'chat_id')  # Replace with the chat ID you want to send the message to
+CHAT_ID = keyring.get_password('telega', 'chat_id')
 
-# Initialize the Dispatcher
+
 dp = Dispatcher()
 
 
@@ -36,9 +37,17 @@ async def send_asteroid_info(bot: Bot) -> None:
     await bot.send_message(chat_id=CHAT_ID, text=asteroid_info)
 
 
+async def weather(bot: Bot) -> None:
+    """
+    send info about weather
+    """
+    weather_info = get_weather()
+    await bot.send_message(chat_id=CHAT_ID, text=weather_info)
+
 async def main() -> None:
     bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
     crontab('0 9 * * *', func=send_asteroid_info, args=[bot], start=True)
+    crontab('0 9 * * *', func=weather, args=[bot], start=True)
     await dp.start_polling(bot)
 
 
